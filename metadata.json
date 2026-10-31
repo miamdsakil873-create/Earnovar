@@ -1,0 +1,6 @@
+{
+  "name": "Earnova",
+  "description": "Mobile-friendly earning platform with watch rewards, tasks, referrals, and bKash/Nagad/Rocket withdrawal.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

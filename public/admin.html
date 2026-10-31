@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Earnova Master Admin Panel — Live Database Sync</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #020617;
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-emerald-500 selection:text-black">
+
+  <!-- ================= AUTH SCREEN (PIN LOCK) ================= -->
+  <div id="authScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl text-center space-y-4">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-amber-300 p-0.5 mx-auto shadow-lg shadow-emerald-500/20">
+        <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-emerald-400 font-black text-2xl">
+          👑
+        </div>
+      </div>
+      <div>
+        <h1 class="text-xl font-black text-white tracking-tight">Earnova Master Admin</h1>
+        <p class="text-xs text-slate-400 mt-1">লাইভ ডাটাবেজ কন্ট্রোল প্যানেল</p>
+      </div>
+
+      <div class="space-y-3 pt-2">
+        <div class="relative">
+          <input 
+            type="password" 
+            id="adminPin" 
+            placeholder="গোপন অ্যাডমিন পিন লিখুন" 
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-center text-sm text-white font-mono tracking-widest focus:outline-none focus:border-emerald-500 transition"
+          />
+        </div>
+        <p id="authError" class="text-xs text-red-400 font-semibold hidden">ভুল পিন! সঠিক অ্যাডমিন পিন দিন।</p>
+        <button 
+          onclick="handleAdminLogin()" 
+          class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 active:scale-95 text-slate-950 font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-500/20 cursor-pointer"
+        >
+          লগইন করুন (Unlock Panel)
+        </button>
+        <p class="text-[10px] text-slate-500">সুরক্ষিত অ্যাডমিন অথেনটিকেশন সিস্টেম</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MASTER DASHBOARD ================= -->
+  <div id="mainDashboard" class="hidden min-h-screen flex flex-col">
+    <!-- Top Header -->
+    <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 py-3 select-none">
+      <div class="max-w-5xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 font-bold shadow-md shadow-emerald-500/20">
+            <span class="text-lg">👑</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-extrabold text-base tracking-tight bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
+                Earnova Admin
+              </span>
+              <span id="syncBadge" class="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                LIVE SYNC
+              </span>
+            </div>
+            <p class="text-[10px] text-slate-400">সাইটের সাথে ১০০% রিয়েল-টাইম সংযুক্ত</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Direct File Download Button for Mobile / PC -->
+          <button onclick="downloadSelfHtml()" class="px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-1 transition" title="admin.html ফাইলটি আপনার ফোনে ডাউনলোড করুন">
+            <span>📥 ডাউনলোড ফাইল</span>
+          </button>
+          <button onclick="refreshData()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="রিফ্রেশ">
+            🔄
+          </button>
+          <button onclick="logoutAdmin()" class="px-3 py-1.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-400 text-xs font-bold transition">
+            লগআউট
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Disconnection Warning Banner -->
+    <div id="offlineBanner" class="hidden bg-red-950/90 border-b border-red-800 text-red-200 px-4 py-3 text-xs animate-in fade-in">
+      <div class="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">⚠️</span>
+          <div>
+            <p class="font-bold text-white text-xs sm:text-sm">লাইভ ডাটাবেজের সাথে সংযোগ পাওয়া যায়নি (Disconnected)</p>
+            <p class="text-[11px] text-red-300">এই অফলাইন ফাইল থেকে সার্ভারে পৌঁছানো যাচ্ছে না। যেকোনো পরিবর্তন মূল ওয়েবসাইটে সেভ হবে না!</p>
+          </div>
+        </div>
+        <div class="shrink-0 flex items-center gap-2">
+          <a href="/" target="_blank" class="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs inline-flex items-center gap-1 shadow-md">
+            <span>সরাসরি অ্যাপে অ্যাডমিন ওপেন করুন 👑</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Server Connection Status & Config Bar -->
+    <div class="bg-slate-950/80 border-b border-slate-800/80 px-4 py-2 text-xs">
+      <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span class="text-slate-400">🌐 সাইট ব্যাকএন্ড কানেকশন:</span>
+          <span id="currentServerDisplay" class="font-mono text-emerald-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 font-bold">Auto (Detecting...)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="promptChangeServerUrl()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-medium border border-slate-700 transition cursor-pointer" title="অন্য সার্ভারের সাথে যুক্ত করতে ক্লিক করুন">
+            ⚙️ সার্ভার লিঙ্ক পরিবর্তন
+          </button>
+          <button onclick="fetchLiveServerData()" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-[11px] font-bold border border-emerald-500/30 transition cursor-pointer flex items-center gap-1">
+            <span>🔄 সিঙ্ক টেস্ট (Sync)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-5xl w-full mx-auto p-4 space-y-5">
+      <!-- Quick Metric Stats -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
+          <p class="text-[11px] text-slate-400 font-medium">মোট ব্যবহারকারী</p>
+          <p id="statUsers" class="text-2xl font-black text-white font-mono">0</p>
+          <p class="text-[10px] text-emerald-400">অ্যাক্টিভ মেম্বার্স</p>
+        </div>
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
+          <p class="text-[11px] text-slate-400 font-medium">পেন্ডিং উইথড্রয়াল</p>
+          <p id="statPendingWithdraw" class="text-2xl font-black text-amber-400 font-mono">৳০.০০</p>
+          <p id="statPendingCount" class="text-[10px] text-amber-300/80">০ টি অপেক্ষমান</p>
+        </div>
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
+          <p class="text-[11px] text-slate-400 font-medium">মোট পেইড আউট</p>
+          <p id="statPaidOut" class="text-2xl font-black text-emerald-400 font-mono">৳০.০০</p>
+          <p class="text-[10px] text-slate-400">সফল উত্তোলন</p>
+        </div>
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-1">
+          <p class="text-[11px] text-slate-400 font-medium">রেফারেল শর্ত (উত্তোলন)</p>
+          <p id="statMinReferralReq" class="text-2xl font-black text-teal-300 font-mono">৩ জন</p>
+          <p class="text-[10px] text-teal-400/80">সর্বনিম্ন রেফার প্রয়োজন</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar border-b border-slate-800 pb-2">
+        <button onclick="switchTab('withdrawals')" id="tab-withdrawals" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-slate-950 transition shrink-0">
+          💸 উত্তোলন অনুমোদন
+        </button>
+        <button onclick="switchTab('tasks')" id="tab-tasks" class="tab-btn px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-slate-900 transition shrink-0">
+          📋 টাস্ক যোগ ও ডিলিট
+        </button>
+        <button onclick="switchTab('ads')" id="tab-ads" class="tab-btn px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-slate-900 transition shrink-0">
+          🎬 বিজ্ঞাপন ম্যানেজার
+        </button>
+        <button onclick="switchTab('users')" id="tab-users" class="tab-btn px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-slate-900 transition shrink-0">
+          👥 ব্যবহারকারী
+        </button>
+        <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-slate-900 transition shrink-0">
+          ⚙️ রেফার শর্ত ও সেটিংস
+        </button>
+      </div>
+
+      <!-- TAB 1: WITHDRAWALS MANAGER -->
+      <section id="view-withdrawals" class="tab-view space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <span>লাইভ উত্তোলন রিকোয়েস্ট তালিকা</span>
+            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full" id="withdrawBadge">0 Pending</span>
+          </h2>
+        </div>
+
+        <div id="withdrawalsList" class="space-y-2.5">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- TAB 2: TASKS MANAGER (ADD / DELETE TASKS & VERIFY PROOFS) -->
+      <section id="view-tasks" class="tab-view hidden space-y-4">
+        <!-- New Task Creation Form -->
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">➕ সাইটে নতুন টাস্ক যোগ করুন</h3>
+            <span class="text-[10px] text-slate-400">সাইটে সরাসরি লাইভ হবে</span>
+          </div>
+
+          <form onsubmit="handleCreateTask(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div class="space-y-1">
+              <label class="text-slate-400 font-medium">টাস্কের শিরোনাম (Title)</label>
+              <input type="text" id="newTaskTitle" required placeholder="যেমন: টেলিগ্রাম চ্যানেলে জয়েন করুন" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-emerald-500" />
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-slate-400 font-medium">ক্যাটাগরি</label>
+              <select id="newTaskCategory" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-emerald-500">
+                <option value="TELEGRAM">📢 টেলিগ্রাম চ্যানেল / গ্রুপ (Telegram)</option>
+                <option value="SOCIAL">🌐 সোশ্যাল মিডিয়া: YouTube / Facebook / Instagram</option>
+                <option value="APP">📱 অ্যাপ ইন্সটল ও প্লে স্টোর রিভিউ (App)</option>
+                <option value="SURVEY">📝 সার্ভে ও কুইজ প্রশ্নমালা (Survey)</option>
+                <option value="WEBSITE">💻 ওয়েবসাইট ভিজিট ও রেজিস্ট্রেশন (Website)</option>
+                <option value="OTHER">⚡ অন্যান্য মাইক্রো জবস (Other)</option>
+              </select>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-slate-400 font-medium">পুরস্কারের পরিমাণ (Reward BDT ৳)</label>
+              <input type="number" step="0.5" id="newTaskReward" required placeholder="15" value="15" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:border-emerald-500" />
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-slate-400 font-medium">টাস্ক লিঙ্ক (Task URL / চ্যানেল লিঙ্ক)</label>
+              <input type="url" id="newTaskUrl" required placeholder="https://t.me/..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-emerald-500" />
+            </div>
+
+            <div class="sm:col-span-2 space-y-1">
+              <label class="text-slate-400 font-medium">টাস্কের বিবরণ</label>
+              <input type="text" id="newTaskDesc" required placeholder="আমাদের অফিসিয়াল চ্যানেলে যুক্ত হয়ে সবসময় আপডেট থাকুন।" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-emerald-500" />
+            </div>
+
+            <div class="sm:col-span-2 space-y-1">
+              <label class="text-slate-400 font-medium">প্রুফ নির্দেশিকা (ইউজার কী সাবমিট করবে)</label>
+              <input type="text" id="newTaskProof" required placeholder="আপনার টেলিগ্রাম ইউজারনেম লিখুন (যেমন: @sakil123)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-emerald-500" />
+            </div>
+
+            <div class="sm:col-span-2 pt-1">
+              <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 active:scale-95 text-slate-950 font-bold text-xs shadow-md transition cursor-pointer">
+                + সাইটে এই টাস্কটি প্রকাশ করুন (Publish Live Task)
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Existing Active Tasks List with Delete Option -->
+        <div class="space-y-2.5">
+          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">সাইটের বর্তমান সক্রিয় টাস্কসমূহ (ম্যানেজ ও ডিলিট)</h3>
+          <div id="activeTasksList" class="space-y-2.5">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- User Proofs Verification Section -->
+        <div class="space-y-2.5 pt-3 border-t border-slate-800">
+          <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">📥 ইউজারদের জমা দেওয়া প্রুফ ভেরিফিকেশন</h3>
+          <div id="taskProofsList" class="space-y-2.5">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: ADS MANAGER (ADD / DELETE ADS) -->
+      <section id="view-ads" class="tab-view hidden space-y-4">
+        <!-- New Ad Form -->
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">➕ সাইটে নতুন বিজ্ঞাপন যোগ করুন</h3>
+            <span class="text-[10px] text-slate-400">ওয়াচ অ্যান্ড আর্ন ভিডিও</span>
+          </div>
+
+          <form onsubmit="handleCreateAd(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div class="space-y-1">
+              <label class="text-slate-400 font-medium">বিজ্ঞাপনের শিরোনাম (Ad Title)</label>
+              <input type="text" id="newAdTitle" required placeholder="যেমন: নতুন গেম ট্রেইলার ও কয়েন রিওয়ার্ড" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-emerald-500" />
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-slate-400 font-medium">স্পনসর কোম্পানির নাম</label>
+              <input type="text" id="newAdSponsor" required placeholder="যেমন: GameZone Pro" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-emerald-500" />
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-slate-400 font-medium">পুরস্কার (Reward BDT ৳)</label>
+              <input type="number" step="0.5" id="newAdReward" required value="3.5" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:border-emerald-500" />
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-slate-400 font-medium">ভিডিও সেকেন্ড (Duration Seconds)</label>
+              <input type="number" id="newAdDuration" required value="15" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:border-emerald-500" />
+            </div>
+
+            <div class="sm:col-span-2 space-y-1">
+              <label class="text-slate-400 font-medium">থাম্বনেইল ইমেজ লিঙ্ক (Thumbnail URL)</label>
+              <input type="url" id="newAdThumbnail" required value="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-emerald-500" />
+            </div>
+
+            <div class="sm:col-span-2 pt-1">
+              <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:brightness-110 active:scale-95 text-slate-950 font-bold text-xs shadow-md transition cursor-pointer">
+                + সাইটে এই বিজ্ঞাপনটি যোগ করুন (Publish Ad)
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Existing Ads List -->
+        <div class="space-y-2.5">
+          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">সাইটের বর্তমান ভিডিও বিজ্ঞাপন তালিকা</h3>
+          <div id="adsList" class="space-y-2.5">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: USERS MANAGER -->
+      <section id="view-users" class="tab-view hidden space-y-3">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="text-sm font-bold text-white">ব্যবহারকারী ম্যানেজমেন্ট</h2>
+          <input 
+            type="text" 
+            id="userSearchInput" 
+            oninput="filterUsers()" 
+            placeholder="নম্বর বা নাম দিয়ে খুঁজুন..." 
+            class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 w-48"
+          />
+        </div>
+
+        <div id="usersList" class="space-y-2.5">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+      <!-- TAB 5: SETTINGS & REFERRAL REQUIREMENTS -->
+      <section id="view-settings" class="tab-view hidden space-y-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <h2 class="text-sm font-bold text-white">অ্যাপের আর্থিক নীতি ও রেফার শর্তাবলী</h2>
+              <p class="text-[11px] text-slate-400">লাইভ ডাটাবেজের সেটিংস নিয়ন্ত্রণ করুন</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <!-- Referral Requirement Box -->
+            <div class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 sm:col-span-2 space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="text-emerald-300 font-bold flex items-center gap-1.5">
+                  <span>🎯 টাকা উত্তোলনের জন্য সর্বনিম্ন রেফারেল শর্ত (Minimum Referrals to Withdraw)</span>
+                </label>
+                <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold">অ্যান্টি-চিটিং গার্ড</span>
+              </div>
+              <p class="text-[11px] text-slate-300">
+                ইউজার নির্দিষ্ট সংখ্যক বন্ধুকে রেফার না করা পর্যন্ত বিকাশ/নগদে টাকা তুলতে পারবে না। (শর্ত না রাখতে চাইলে 0 দিন)
+              </p>
+              <div class="flex items-center gap-2">
+                <input type="number" id="settingMinReferrals" min="0" max="50" value="3" class="w-32 bg-slate-950 border border-emerald-500/40 rounded-xl px-3 py-2 text-white font-mono font-bold focus:border-emerald-400 text-sm" />
+                <span class="text-slate-300 text-xs">জন সফল রেফারেল থাকতে হবে</span>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-slate-400 font-medium">সর্বনিম্ন উত্তোলন সীমা (Minimum Withdrawal BDT ৳)</label>
+              <input type="number" id="settingMinWithdraw" value="50" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:border-emerald-500" />
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-slate-400 font-medium">দৈনিক ভিডিও বিজ্ঞাপন সীমা (Daily Watch Limit)</label>
+              <input type="number" id="settingDailyAdLimit" value="12" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:border-emerald-500" />
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-slate-400 font-medium">দৈনিক চেক-ইন ফ্রি বোনাস (Daily Bonus BDT ৳)</label>
+              <input type="number" id="settingDailyBonus" value="5" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:border-emerald-500" />
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-slate-400 font-medium">প্রতি রেফারে তাৎক্ষণিক বোনাস (Referral Direct BDT ৳)</label>
+              <input type="number" id="settingReferralBonus" value="10" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:border-emerald-500" />
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-slate-400 font-medium">মনিট্যাগ জোন আইডি (Monetag Zone ID)</label>
+              <input type="text" id="settingMonetagZone" value="9537184" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono focus:border-emerald-500" />
+            </div>
+
+            <div class="sm:col-span-2 space-y-1">
+              <label class="text-slate-400 font-medium">হোমপেজ সাইট নোটিশ টেক্সট (Notice Banner)</label>
+              <textarea id="settingNoticeText" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:border-emerald-500">🎉 Earnova তে স্বাগতম! ভিডিও দেখে, টাস্ক সম্পন্ন করে এবং বন্ধুদের রেফার করে সরাসরি বিকাশ, নগদ বা ক্রিপ্টোতে টাকা উত্তোলন করুন।</textarea>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 pt-2">
+            <button onclick="saveAdminSettings()" class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition active:scale-95 shadow-md cursor-pointer">
+              সেটিংস সংরক্ষণ করুন (Save All Settings)
+            </button>
+            <button onclick="downloadSelfHtml()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer">
+              📥 admin.html ফাইল ব্যাকআপ
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- JavaScript Logic for Live Synchronized API & Offline Fallback -->
+  <script>
+    let MASTER_PIN = "";
+
+    // Auto-detect or retrieve configured Server URL
+    const PRE_CONFIGURED_SERVER = "__SERVER_URL_PLACEHOLDER__";
+    const FALLBACK_DEFAULT_SERVER = "https://ais-dev-b3ys7arbac3o37i2wsl7ez-176341157454.asia-southeast1.run.app";
+
+    function getCleanServerBase() {
+      const stored = localStorage.getItem('earnova_admin_server_url');
+      if (stored) return stored.replace(/\/+$/, '');
+      if (window.location.origin && window.location.origin.startsWith('http')) {
+        return window.location.origin.replace(/\/+$/, '');
+      }
+      if (PRE_CONFIGURED_SERVER && !PRE_CONFIGURED_SERVER.includes('PLACEHOLDER') && PRE_CONFIGURED_SERVER.startsWith('http')) {
+        return PRE_CONFIGURED_SERVER.replace(/\/+$/, '');
+      }
+      return FALLBACK_DEFAULT_SERVER;
+    }
+
+    function getApiBase() {
+      return getCleanServerBase() + '/api/admin';
+    }
+
+    let API_BASE = getApiBase();
+
+    function updateServerDisplay() {
+      const el = document.getElementById('currentServerDisplay');
+      if (!el) return;
+      el.innerText = getCleanServerBase();
+    }
+
+    function promptChangeServerUrl() {
+      const current = getCleanServerBase();
+      const input = prompt('আপনার লাইভ সাইটের ইউআরএল দিন (যেমন: https://ais-pre-...run.app):', current);
+      if (input !== null && input.trim() !== '') {
+        const cleaned = input.trim().replace(/\/+$/, '');
+        localStorage.setItem('earnova_admin_server_url', cleaned);
+        API_BASE = cleaned + '/api/admin';
+        updateServerDisplay();
+        fetchLiveServerData();
+      } else if (input !== null && input.trim() === '') {
+        localStorage.removeItem('earnova_admin_server_url');
+        API_BASE = getApiBase();
+        updateServerDisplay();
+        fetchLiveServerData();
+      }
+    }
+
+    let liveData = {
+      users: [],
+      withdrawals: [],
+      tasks: [],
+      taskSubmissions: [],
+      ads: [],
+      settings: {}
+    };
+
+    // Download admin.html directly to mobile device
+    function downloadSelfHtml() {
+      const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'earnova-admin.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      alert('earnova-admin.html ফাইলটি সফলভাবে আপনার ডিভাইসে ডাউনলোড হয়েছে!');
+    }
+
+    async function fetchLiveServerData() {
+      updateServerDisplay();
+      try {
+        const res = await fetch(`${API_BASE}/data`, {
+          headers: { 'x-admin-pin': MASTER_PIN }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            liveData = data;
+            document.getElementById('syncBadge').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> LIVE SYNC';
+            const banner = document.getElementById('offlineBanner');
+            if (banner) banner.classList.add('hidden');
+            renderAll();
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('API sync warning:', e);
+      }
+
+      // If standalone/offline fallback
+      document.getElementById('syncBadge').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-red-400"></span> ❌ DISCONNECTED';
+      const banner = document.getElementById('offlineBanner');
+      if (banner) banner.classList.remove('hidden');
+      loadFallbackStorage();
+      renderAll();
+    }
+
+    function loadFallbackStorage() {
+      try {
+        const saved = localStorage.getItem('earnova_admin_live_cache');
+        if (saved) {
+          liveData = JSON.parse(saved);
+        } else {
+          // Exact matching default data from Earnova site
+          liveData = {
+            users: [
+              {
+                id: 'usr_demo123',
+                name: 'মোঃ সাকিব আহমেদ',
+                phone: '01712345678',
+                email: 'sakib@example.com',
+                balance: 12.50,
+                totalEarned: 124.00,
+                totalWithdrawn: 100.00,
+                referralCount: 3,
+                status: 'ACTIVE'
+              }
+            ],
+            withdrawals: [
+              {
+                id: 'w_demo_1',
+                userName: 'মোঃ সাকিব আহমেদ',
+                method: 'bKash',
+                accountType: 'Personal',
+                accountNumber: '01712345678',
+                amount: 50.00,
+                status: 'PENDING',
+                requestedAt: new Date().toISOString()
+              }
+            ],
+            tasks: [
+              {
+                id: 'task_1',
+                title: 'অফিসিয়াল টেলিগ্রাম চ্যানেলে জয়েন করুন',
+                category: 'TELEGRAM',
+                rewardAmount: 15.00,
+                taskUrl: 'https://t.me/EarnWatchBotSupport',
+                description: 'আমাদের অফিশিয়াল নোটিশ ও পেমেন্ট প্রুফ চ্যানেলে যুক্ত হয়ে সবসময় আপডেট থাকুন।',
+                proofPlaceholder: 'আপনার টেলিগ্রাম ইউজারনেম লিখুন (যেমন: @sakil123)'
+              },
+              {
+                id: 'task_2',
+                title: 'ইউটিউব চ্যানেল সাবস্ক্রাইব করুন',
+                category: 'SOCIAL',
+                rewardAmount: 20.00,
+                taskUrl: 'https://youtube.com/@EarnWatchBotOfficial',
+                description: 'আমাদের স্পনসর ক্রিয়েটরের ইউটিউব চ্যানেল সাবস্ক্রাইব করুন এবং বেল আইকন চাপুন।',
+                proofPlaceholder: 'আপনার ইউটিউব চ্যানেল বা জিমেইল ইউজারনেম দিন'
+              },
+              {
+                id: 'task_3',
+                title: 'প্লে স্টোর অ্যাপ ইন্সটল ও ৫ স্টার রিভিউ',
+                category: 'APP',
+                rewardAmount: 35.00,
+                taskUrl: 'https://play.google.com/store/apps/details?id=com.earnwatchbot.tools',
+                description: 'স্পনসর করা ক্যালকুলেটর অ্যান্ড টুলস অ্যাপ ইন্সটল করে পজিটিভ ৫ স্টার রিভিউ দিন।',
+                proofPlaceholder: 'যে নামে প্লে স্টোরে রিভিউ দিয়েছেন সেই নাম লিখুন'
+              },
+              {
+                id: 'task_4',
+                title: 'সহজ সার্ভে কুইজ সম্পূর্ণ করুন',
+                category: 'SURVEY',
+                rewardAmount: 25.00,
+                taskUrl: 'https://forms.google.com/earn-watch-survey',
+                description: 'বাংলাদেশি অনলাইন শপিং অভিজ্ঞতা নিয়ে মাত্র ৩টি সহজ প্রশ্নের উত্তর দিন।',
+                proofPlaceholder: 'সার্ভে সমাপ্তি কোড দিন (যেমন: SURVEY-9981)'
+              }
+            ],
+            taskProofs: [
+              {
+                id: 'sub_1',
+                userName: 'মোঃ সাকিব আহমেদ',
+                taskTitle: 'অফিসিয়াল টেলিগ্রাম চ্যানেলে জয়েন করুন',
+                proofText: '@sakib123',
+                reward: 15.00,
+                status: 'PENDING'
+              }
+            ],
+            ads: [
+              {
+                id: 'ad_1',
+                title: 'প্রিমিয়াম গ্যাজেট রিভিউ & অফার',
+                sponsorName: 'TechGadget BD',
+                rewardAmount: 3.50,
+                durationSeconds: 15,
+                thumbnail: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=600&q=80'
+              },
+              {
+                id: 'ad_2',
+                title: 'অনলাইন শপিং স্পেশাল মেগা ডিসকাউন্ট',
+                sponsorName: 'ShopNow Express',
+                rewardAmount: 4.00,
+                durationSeconds: 20,
+                thumbnail: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=600&q=80'
+              },
+              {
+                id: 'ad_3',
+                title: 'মোবাইল রিচার্জ ও ক্যাশব্যাক ক্যাম্পেইন',
+                sponsorName: 'PaySmart BD',
+                rewardAmount: 2.50,
+                durationSeconds: 15,
+                thumbnail: 'https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=600&q=80'
+              },
+              {
+                id: 'ad_4',
+                title: 'অনলাইন স্কিল ডেভেলপমেন্ট ও ফ্রিল্যান্সিং',
+                sponsorName: 'SkillUp Academy',
+                rewardAmount: 5.00,
+                durationSeconds: 25,
+                thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80'
+              },
+              {
+                id: 'ad_5',
+                title: 'নতুন মোবাইল গেম ট্রেইলার ও টিপস',
+                sponsorName: 'GameZone Pro',
+                rewardAmount: 3.00,
+                durationSeconds: 15,
+                thumbnail: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80'
+              }
+            ],
+            settings: {
+              minWithdrawal: 50,
+              dailyAdLimit: 12,
+              dailyBonusAmount: 5,
+              referralDirectBonus: 10,
+              minReferralsToWithdraw: 3,
+              siteNotice: '🎉 Earnova তে স্বাগতম! ভিডিও দেখে, টাস্ক সম্পন্ন করে এবং বন্ধুদের রেফার করে সরাসরি বিকাশ, নগদ বা ক্রিপ্টোতে টাকা উত্তোলন করুন।'
+            }
+          };
+        }
+      } catch (e) {}
+    }
+
+    function saveFallbackStorage() {
+      try {
+        localStorage.setItem('earnova_admin_live_cache', JSON.stringify(liveData));
+      } catch (e) {}
+    }
+
+    // Login
+    function handleAdminLogin() {
+      const pin = document.getElementById('adminPin').value.trim();
+      const validPins = ['Earnova017@', '889900'];
+      if (validPins.includes(pin)) {
+        MASTER_PIN = pin;
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('mainDashboard').classList.remove('hidden');
+        fetchLiveServerData();
+      } else {
+        document.getElementById('authError').classList.remove('hidden');
+      }
+    }
+
+    function logoutAdmin() {
+      document.getElementById('mainDashboard').classList.add('hidden');
+      document.getElementById('authScreen').classList.remove('hidden');
+      document.getElementById('adminPin').value = '';
+    }
+
+    // Tab switcher
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-emerald-500', 'text-slate-950', 'font-bold');
+        btn.classList.add('text-slate-400', 'bg-slate-900', 'font-medium');
+      });
+
+      document.getElementById(`view-${tabName}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-${tabName}`);
+      activeBtn.classList.remove('text-slate-400', 'bg-slate-900', 'font-medium');
+      activeBtn.classList.add('bg-emerald-500', 'text-slate-950', 'font-bold');
+    }
+
+    // Render Stats
+    function renderStats() {
+      const users = liveData.users || [];
+      const withdrawals = liveData.withdrawals || [];
+      document.getElementById('statUsers').innerText = users.length;
+
+      const pendingWithdrawals = withdrawals.filter(w => w.status === 'PENDING');
+      const pendingTotal = pendingWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0);
+      document.getElementById('statPendingWithdraw').innerText = `৳${pendingTotal.toFixed(2)}`;
+      document.getElementById('statPendingCount').innerText = `${pendingWithdrawals.length} টি অপেক্ষমান`;
+      document.getElementById('withdrawBadge').innerText = `${pendingWithdrawals.length} Pending`;
+
+      const paidTotal = withdrawals.filter(w => w.status === 'COMPLETED').reduce((sum, w) => sum + (w.amount || 0), 0);
+      document.getElementById('statPaidOut').innerText = `৳${paidTotal.toFixed(2)}`;
+
+      const minRef = liveData.settings?.minReferralsToWithdraw || 3;
+      document.getElementById('statMinReferralReq').innerText = `${minRef} জন`;
+      if (document.getElementById('settingMinReferrals')) {
+        document.getElementById('settingMinReferrals').value = minRef;
+      }
+    }
+
+    // Render Withdrawals
+    function renderWithdrawals() {
+      const container = document.getElementById('withdrawalsList');
+      const withdrawals = liveData.withdrawals || [];
+
+      if (withdrawals.length === 0) {
+        container.innerHTML = '<div class="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center text-slate-500 text-xs">কোনো উত্তোলন রিকোয়েস্ট নেই।</div>';
+        return;
+      }
+
+      container.innerHTML = withdrawals.map(w => `
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-white text-sm">${w.userName || 'User'}</span>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">${w.method}</span>
+              <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px]">${w.accountType}</span>
+            </div>
+            <p class="font-mono text-slate-300 font-bold text-sm">${w.accountNumber}</p>
+            <p class="text-[10px] text-slate-500">${new Date(w.requestedAt || Date.now()).toLocaleString()}</p>
+          </div>
+
+          <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-800">
+            <div class="text-right">
+              <p class="font-mono font-black text-emerald-400 text-base">৳${Number(w.amount).toFixed(2)}</p>
+              <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${w.status === 'COMPLETED' ? 'bg-emerald-500/20 text-emerald-400' : w.status === 'REJECTED' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-300'}">${w.status}</span>
+            </div>
+
+            ${w.status === 'PENDING' ? `
+              <div class="flex items-center gap-1.5">
+                <button onclick="handleWithdrawAction('${w.id}', 'APPROVE')" class="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md transition active:scale-95 cursor-pointer">
+                  পেইড করুন ✅
+                </button>
+                <button onclick="handleWithdrawAction('${w.id}', 'REJECT')" class="px-3 py-1.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-400 font-bold text-xs transition active:scale-95 cursor-pointer">
+                  বাতিল ❌
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Render Tasks
+    function renderTasks() {
+      const activeContainer = document.getElementById('activeTasksList');
+      const tasks = liveData.tasks || [];
+
+      if (tasks.length === 0) {
+        activeContainer.innerHTML = '<div class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center text-slate-500 text-xs">কোনো টাস্ক তৈরি করা নেই।</div>';
+      } else {
+        activeContainer.innerHTML = tasks.map(t => `
+          <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-3 text-xs">
+            <div class="space-y-0.5">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-white">${t.title}</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300">${t.category}</span>
+              </div>
+              <p class="text-[11px] text-slate-400">${t.description || ''}</p>
+              ${t.taskUrl ? `<a href="${t.taskUrl}" target="_blank" class="text-[10px] text-emerald-400 underline font-mono">${t.taskUrl}</a>` : ''}
+            </div>
+
+            <div class="flex items-center gap-3 shrink-0">
+              <span class="font-bold font-mono text-emerald-400 text-sm">৳${Number(t.rewardAmount || t.reward || 0).toFixed(2)}</span>
+              <button onclick="handleDeleteTask('${t.id}')" class="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold text-[11px] transition cursor-pointer">
+                🗑️ ডিলিট
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Proofs list
+      const proofsContainer = document.getElementById('taskProofsList');
+      const proofs = liveData.taskSubmissions || liveData.taskProofs || [];
+
+      if (proofs.length === 0) {
+        proofsContainer.innerHTML = '<div class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center text-slate-500 text-xs">কোনো পেন্ডিং প্রুফ জমা নেই।</div>';
+      } else {
+        proofsContainer.innerHTML = proofs.map(tp => `
+          <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+            <div class="space-y-1">
+              <p class="font-bold text-white">${tp.taskTitle || 'Task'}</p>
+              <p class="text-slate-400">ইউজার: <span class="text-slate-200 font-bold">${tp.userName || tp.userId}</span></p>
+              <p class="text-slate-300 font-mono bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 inline-block">প্রমাণ: ${tp.proofText || tp.proof}</p>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <span class="font-mono font-bold text-emerald-400 text-sm">৳${Number(tp.rewardAmount || tp.reward || 15).toFixed(2)}</span>
+              ${tp.status === 'PENDING' ? `
+                <button onclick="handleTaskProofAction('${tp.id}', 'APPROVED')" class="px-3 py-1.5 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs cursor-pointer">অনুমোদন ✅</button>
+                <button onclick="handleTaskProofAction('${tp.id}', 'REJECTED')" class="px-3 py-1.5 rounded-xl bg-red-500/20 text-red-400 font-bold text-xs cursor-pointer">বাতিল ❌</button>
+              ` : `<span class="text-[10px] font-bold text-slate-400">${tp.status}</span>`}
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Render Ads
+    function renderAds() {
+      const container = document.getElementById('adsList');
+      const ads = liveData.ads || [];
+
+      if (ads.length === 0) {
+        container.innerHTML = '<div class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center text-slate-500 text-xs">কোনো বিজ্ঞাপন নেই।</div>';
+        return;
+      }
+
+      container.innerHTML = ads.map(ad => `
+        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-3">
+            <img src="${ad.thumbnail}" class="w-14 h-10 object-cover rounded-lg bg-slate-950" />
+            <div>
+              <p class="font-bold text-white">${ad.title}</p>
+              <p class="text-[11px] text-slate-400">${ad.sponsorName || ad.sponsor} • ${ad.durationSeconds || ad.duration} সেকেন্ড</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 shrink-0">
+            <span class="font-mono font-bold text-amber-400">৳${Number(ad.rewardAmount || ad.reward || 0).toFixed(2)}</span>
+            <button onclick="handleDeleteAd('${ad.id}')" class="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold text-[11px] transition cursor-pointer">
+              🗑️ ডিলিট
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Render Users
+    function renderUsers() {
+      const container = document.getElementById('usersList');
+      const users = liveData.users || [];
+
+      container.innerHTML = users.map(u => `
+        <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-white">${u.name}</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${u.status === 'ACTIVE' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}">${u.status}</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] bg-purple-500/20 text-purple-300 font-bold">রেফার: ${u.referralCount || 0} জন</span>
+            </div>
+            <p class="text-slate-400 font-mono">${u.phone} ${u.email ? `• ${u.email}` : ''}</p>
+          </div>
+
+          <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+            <div class="text-right">
+              <p class="font-mono font-bold text-emerald-400">ব্যালেন্স: ৳${Number(u.balance || 0).toFixed(2)}</p>
+              <p class="text-[10px] text-slate-500">মোট আয়: ৳${Number(u.totalEarned || 0).toFixed(2)}</p>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              <button onclick="handleUserBalance('${u.id}', 50)" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold text-[11px] hover:bg-emerald-500/30 cursor-pointer">
+                +৳৫০
+              </button>
+              <button onclick="handleUserStatus('${u.id}')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] hover:bg-slate-700 cursor-pointer">
+                ${u.status === 'ACTIVE' ? 'ব্যান 🚫' : 'আনব্যান 🟢'}
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    const DISCONNECTED_MSG = '❌ লাইভ সার্ভারে কানেক্ট করা যায়নি!\n\n💡 কারণ: এই অফলাইন ফাইলটি ক্লাউড সার্ভারের সাথে সংযুক্ত হতে পারছে না।\n\nসমাধান: সরাসরি Earnova ওয়েবসাইট ওপেন করুন এবং প্রোফাইল থেকে "অ্যাপে প্যানেল ওপেন" করুন (বা /admin লিঙ্ক ব্যবহার করুন)। সেখানে ১০০% সরাসরি ডাটাবেজ আপডেট হবে।';
+
+    // Real API Calls
+    async function handleWithdrawAction(id, action) {
+      try {
+        const res = await fetch(`${API_BASE}/withdrawals/${id}/action`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-pin': MASTER_PIN },
+          body: JSON.stringify({ action })
+        });
+        if (res.ok) {
+          alert(`✅ উত্তোলন স্ট্যাটাস সফলভাবে ${action === 'APPROVE' ? 'পেইড (COMPLETED)' : 'বাতিল ও রিফান্ড'} করা হয়েছে!`);
+          fetchLiveServerData();
+          return;
+        }
+        const data = await res.json().catch(() => ({}));
+        alert('❌ সার্ভার ত্রুটি: ' + (data.message || 'উত্তোলন আপডেট ব্যর্থ হয়েছে'));
+      } catch (e) {
+        alert(DISCONNECTED_MSG);
+      }
+    }
+
+    async function handleCreateTask(e) {
+      e.preventDefault();
+      const payload = {
+        title: document.getElementById('newTaskTitle').value,
+        category: document.getElementById('newTaskCategory').value,
+        rewardAmount: Number(document.getElementById('newTaskReward').value),
+        taskUrl: document.getElementById('newTaskUrl').value,
+        description: document.getElementById('newTaskDesc').value,
+        proofPlaceholder: document.getElementById('newTaskProof').value,
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/tasks/add`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-pin': MASTER_PIN },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            alert('🎉 নতুন টাস্ক সরাসরি মূল সাইটে লাইভ যোগ হয়েছে এবং ইউজারেরা সাথে সাথে দেখতে পারবে!');
+            e.target.reset();
+            fetchLiveServerData();
+            return;
+          }
+        }
+        const err = await res.json().catch(() => ({}));
+        alert('❌ টাস্ক তৈরি ব্যর্থ: ' + (err.message || 'সার্ভার সমস্যা'));
+      } catch (e) {
+        alert(DISCONNECTED_MSG);
+      }
+    }
+
+    async function handleDeleteTask(id) {
+      if (!confirm('আপনি কি সত্যিই এই টাস্কটি ডিলিট করতে চান?')) return;
+      try {
+        const res = await fetch(`${API_BASE}/tasks/${id}`, {
+          method: 'DELETE',
+          headers: { 'x-admin-pin': MASTER_PIN }
+        });
+        if (res.ok) {
+          alert('🗑️ টাস্কটি মূল সাইট থেকে সফলভাবে মুছে ফেলা হয়েছে!');
+          fetchLiveServerData();
+          return;
+        }
+        alert('❌ টাস্ক ডিলিট ব্যর্থ হয়েছে।');
+      } catch (e) {
+        alert(DISCONNECTED_MSG);
+      }
+    }
+
+    async function handleTaskProofAction(id, action) {
+      try {
+        const res = await fetch(`${API_BASE}/tasks/proofs/${id}/action`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-pin': MASTER_PIN },
+          body: JSON.stringify({ action })
+        });
+        if (res.ok) {
+          alert(`✅ প্রমাণ সফলভাবে ${action === 'APPROVED' ? 'অনুমোদিত এবং ইউজারের ব্যালেন্সে টাকা যোগ' : 'বাতিল'} হয়েছে!`);
+          fetchLiveServerData();
+          return;
+        }
+        alert('❌ প্রুফ অ্যাকশন ব্যর্থ');
+      } catch (e) {
+        alert(DISCONNECTED_MSG);
+      }
+    }
+
+    async function handleCreateAd(e) {
+      e.preventDefault();
+      const payload = {
+        title: document.getElementById('newAdTitle').value,
+        sponsorName: document.getElementById('newAdSponsor').value,
+        rewardAmount: Number(document.getElementById('newAdReward').value),
+        durationSeconds: Number(document.getElementById('newAdDuration').value),
+        thumbnail: document.getElementById('newAdThumbnail').value,
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/ads/add`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-pin': MASTER_PIN },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          alert('🎉 নতুন বিজ্ঞাপন সরাসরি সাইটে লাইভ যোগ হয়েছে!');
+          e.target.reset();
+          fetchLiveServerData();
+          return;
+        }
+        alert('❌ বিজ্ঞাপন যোগ করা যায়নি।');
+      } catch (e) {
+        alert(DISCONNECTED_MSG);
+      }
+    }
+
+    async function handleDeleteAd(id) {
+      if (!confirm('আপনি কি এই বিজ্ঞাপনটি ডিলিট করতে চান?')) return;
+      try {
+        const res = await fetch(`${API_BASE}/ads/${id}`, {
+          method: 'DELETE',
+          headers: { 'x-admin-pin': MASTER_PIN }
+        });
+        if (res.ok) {
+          alert('🗑️ বিজ্ঞাপনটি মুছে ফেলা হয়েছে।');
+          fetchLiveServerData();
+          return;
+        }
+        alert('❌ বিজ্ঞাপন ডিলিট ব্যর্থ।');
+      } catch (e) {
+        alert(DISCONNECTED_MSG);
+      }
+    }
+
+    async function handleUserBalance(id, amount) {
+      try {
+        const res = await fetch(`${API_BASE}/users/${id}/balance`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-pin': MASTER_PIN },
+          body: JSON.stringify({ amount })
+        });
+        if (res.ok) {
+          alert('💰 ইউজার ব্যালেন্স সফলভাবে লাইভ আপডেট হয়েছে!');
+          fetchLiveServerData();
+          return;
+        }
+        alert('❌ ব্যালেন্স আপডেট ব্যর্থ।');
+      } catch (e) {
+        alert(DISCONNECTED_MSG);
+      }
+    }
+
+    async function handleUserStatus(id) {
+      try {
+        const res = await fetch(`${API_BASE}/users/${id}/toggle-status`, {
+          method: 'POST',
+          headers: { 'x-admin-pin': MASTER_PIN }
+        });
+        if (res.ok) {
+          alert('ইউজার স্ট্যাটাস সফলভাবে পরিবর্তন হয়েছে!');
+          fetchLiveServerData();
+          return;
+        }
+        alert('❌ স্ট্যাটাস পরিবর্তন ব্যর্থ।');
+      } catch (e) {
+        alert(DISCONNECTED_MSG);
+      }
+    }
+
+    async function saveAdminSettings() {
+      const payload = {
+        minWithdrawal: Number(document.getElementById('settingMinWithdraw').value),
+        dailyAdLimit: Number(document.getElementById('settingDailyAdLimit').value),
+        dailyBonusAmount: Number(document.getElementById('settingDailyBonus').value),
+        referralDirectBonus: Number(document.getElementById('settingReferralBonus').value),
+        minReferralsToWithdraw: Number(document.getElementById('settingMinReferrals').value),
+        monetagZoneId: document.getElementById('settingMonetagZone') ? document.getElementById('settingMonetagZone').value : '9537184',
+        siteNotice: document.getElementById('settingNoticeText').value,
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/settings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-admin-pin': MASTER_PIN },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          alert('🎉 সাইটের লাইভ সেটিংস ও রেফারেল শর্তাবলী সফলভাবে সংরক্ষিত হয়েছে!');
+          fetchLiveServerData();
+          return;
+        }
+        alert('❌ সেটিংস সেভ ব্যর্থ।');
+      } catch (e) {
+        alert(DISCONNECTED_MSG);
+      }
+    }
+
+      liveData.settings = Object.assign(liveData.settings, payload);
+      saveFallbackStorage();
+      renderStats();
+      alert('সেটিংস সফলভাবে সংরক্ষিত হয়েছে!');
+    }
+
+    function renderAll() {
+      renderStats();
+      renderWithdrawals();
+      renderTasks();
+      renderAds();
+      renderUsers();
+      if (liveData.settings) {
+        if (document.getElementById('settingMinWithdraw')) document.getElementById('settingMinWithdraw').value = liveData.settings.minWithdrawal || 50;
+        if (document.getElementById('settingDailyAdLimit')) document.getElementById('settingDailyAdLimit').value = liveData.settings.dailyAdLimit || 12;
+        if (document.getElementById('settingDailyBonus')) document.getElementById('settingDailyBonus').value = liveData.settings.dailyBonusAmount || 5;
+        if (document.getElementById('settingReferralBonus')) document.getElementById('settingReferralBonus').value = liveData.settings.referralDirectBonus || 10;
+        if (document.getElementById('settingMinReferrals')) document.getElementById('settingMinReferrals').value = liveData.settings.minReferralsToWithdraw || 3;
+        if (document.getElementById('settingMonetagZone')) document.getElementById('settingMonetagZone').value = liveData.settings.monetag?.zoneId || liveData.settings.monetagZoneId || '9537184';
+        if (document.getElementById('settingNoticeText') && liveData.settings.siteNotice) document.getElementById('settingNoticeText').value = liveData.settings.siteNotice;
+      }
+    }
+
+    function refreshData() {
+      fetchLiveServerData();
+    }
+  </script>
+</body>
+</html>

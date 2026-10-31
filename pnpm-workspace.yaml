@@ -1,0 +1,4 @@
+packages:
+  - 'artifacts/earn-platform'
+  - 'artifacts/admin-panel'
+  - 'artifacts/api-server'
