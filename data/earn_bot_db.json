@@ -1,0 +1,205 @@
+{
+  "users": [],
+  "transactions": [],
+  "ads": [
+    {
+      "id": "ad_1",
+      "title": "প্রিমিয়াম গ্যাজেট রিভিউ & অফার",
+      "description": "দারুণ স্মার্টওয়াচ ও গ্যাজেটের আনবক্সিং ভিডিও দেখুন ও ইন্সট্যান্ট রিওয়ার্ড পান।",
+      "rewardAmount": 3.5,
+      "durationSeconds": 15,
+      "category": "টেক রিভিউ",
+      "thumbnail": "https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=600&q=80",
+      "sponsorName": "TechGadget BD",
+      "active": true
+    },
+    {
+      "id": "ad_2",
+      "title": "অনলাইন শপিং স্পেশাল মেগা ডিসকাউন্ট",
+      "description": "সেরা লাইফস্টাইল ও অনলাইন গ্রোসারি ডেলিভারি প্ল্যাটফর্মের ট্রেইলার বিজ্ঞাপন।",
+      "rewardAmount": 4,
+      "durationSeconds": 20,
+      "category": "ই-কমার্স",
+      "thumbnail": "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=600&q=80",
+      "sponsorName": "ShopNow Express",
+      "active": true
+    },
+    {
+      "id": "ad_3",
+      "title": "মোবাইল রিচার্জ ও ক্যাশব্যাক ক্যাম্পেইন",
+      "description": "রিচার্জে ২০% পর্যন্ত ক্যাশব্যাকের চমৎকার প্রোমোশনাল ক্লিপ।",
+      "rewardAmount": 2.5,
+      "durationSeconds": 15,
+      "category": "পেমেন্ট ও অফার",
+      "thumbnail": "https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=600&q=80",
+      "sponsorName": "PaySmart BD",
+      "active": true
+    },
+    {
+      "id": "ad_4",
+      "title": "অনলাইন স্কিল ডেভেলপমেন্ট ও ফ্রিল্যান্সিং",
+      "description": "ঘরে বসে প্রফেশনাল ফ্রিল্যান্সিং স্কিল শেখার ফ্রি ওরিয়েন্টেশন টিজার।",
+      "rewardAmount": 5,
+      "durationSeconds": 25,
+      "category": "এডুকেশন",
+      "thumbnail": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80",
+      "sponsorName": "SkillUp Academy",
+      "active": true
+    },
+    {
+      "id": "ad_5",
+      "title": "নতুন মোবাইল গেম ট্রেইলার ও টিপস",
+      "description": "রোমাঞ্চকর অ্যাকশন গেমপ্লে ভিডিও দেখুন এবং সম্পূর্ণ কয়েন ব্যালেন্সে যোগ করুন।",
+      "rewardAmount": 3,
+      "durationSeconds": 15,
+      "category": "গেমিং",
+      "thumbnail": "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80",
+      "sponsorName": "GameZone Pro",
+      "active": true
+    }
+  ],
+  "adSessions": [],
+  "tasks": [
+    {
+      "id": "task_1",
+      "title": "অফিসিয়াল টেলিগ্রাম চ্যানেলে জয়েন করুন",
+      "description": "আমাদের অফিশিয়াল নোটিশ ও পেমেন্ট প্রুফ চ্যানেলে যুক্ত হয়ে সবসময় আপডেট থাকুন।",
+      "category": "TELEGRAM",
+      "rewardAmount": 15,
+      "instructions": [
+        "নিচের লিঙ্কে ক্লিক করে টেলিগ্রাম চ্যানেলে প্রবেশ করুন।",
+        "চ্যানেলে \"Join\" বাটনে ক্লিক করুন।",
+        "আপনার টেলিগ্রাম ইউজারনেম (@username) প্রুফ বক্সে লিখে সাবমিট করুন।"
+      ],
+      "proofPlaceholder": "আপনার টেলিগ্রাম ইউজারনেম লিখুন (যেমন: @sakil123)",
+      "proofType": "text",
+      "active": true,
+      "totalCompleted": 1420,
+      "estimatedMinutes": 1,
+      "taskUrl": "https://t.me/EarnWatchBotSupport"
+    },
+    {
+      "id": "task_2",
+      "title": "ইউটিউব চ্যানেল সাবস্ক্রাইব করুন",
+      "description": "আমাদের স্পনসর ক্রিয়েটরের ইউটিউব চ্যানেল সাবস্ক্রাইব করুন এবং বেল আইকন চালু করুন।",
+      "category": "SOCIAL",
+      "rewardAmount": 20,
+      "instructions": [
+        "স্পনসর ইউটিউব লিঙ্কে ক্লিক করে চ্যানেলে যান।",
+        "Subscribe বাটনে ক্লিক করুন এবং বেল আইকন চাপুন।",
+        "আপনার ইউটিউব চ্যানেলের নাম বা জিমেইল এর নাম সাবমিট করুন।"
+      ],
+      "proofPlaceholder": "আপনার ইউটিউব চ্যানেল বা জিমেইল ইউজারনেম দিন",
+      "proofType": "text",
+      "active": true,
+      "totalCompleted": 980,
+      "estimatedMinutes": 2,
+      "taskUrl": "https://youtube.com/@EarnWatchBotOfficial"
+    },
+    {
+      "id": "task_3",
+      "title": "প্লে স্টোর অ্যাপ ইন্সটল ও ৫ স্টার রিভিউ",
+      "description": "স্পনসর করা ক্যালকুলেটর অ্যান্ড টুলস অ্যাপ ইন্সটল করে পজিটিভ ৫ স্টার রিভিউ দিন।",
+      "category": "APP",
+      "rewardAmount": 35,
+      "instructions": [
+        "Google Play Store থেকে অ্যাপটি ইন্সটল করুন।",
+        "অ্যাপটি ২ মিনিট ওপেন রাখুন।",
+        "একটি সুন্দর ৫ স্টার রিভিউ দিন এবং রিভিউ নাম বা লিঙ্ক সাবমিট করুন।"
+      ],
+      "proofPlaceholder": "যে নামে প্লে স্টোরে রিভিউ দিয়েছেন সেই নাম লিখুন",
+      "proofType": "text",
+      "active": true,
+      "totalCompleted": 615,
+      "estimatedMinutes": 4,
+      "taskUrl": "https://play.google.com/store/apps/details?id=com.earnwatchbot.tools"
+    },
+    {
+      "id": "task_4",
+      "title": "সহজ সার্ভে কুইজ সম্পূর্ণ করুন",
+      "description": "বাংলাদেশি অনলাইন শপিং অভিজ্ঞতা নিয়ে মাত্র ৩টি সহজ প্রশ্নের উত্তর দিন।",
+      "category": "SURVEY",
+      "rewardAmount": 25,
+      "instructions": [
+        "সার্ভে প্রশ্নমালা পড়ুন।",
+        "সঠিক উত্তর ও মতামত প্রদান করুন।",
+        "সার্ভে সমাপ্তির পর পাওয়া ভেরিফিকেশন কোডটি এখানে সাবমিট করুন।"
+      ],
+      "proofPlaceholder": "সার্ভে সমাপ্তি কোড দিন (যেমন: SURVEY-9981)",
+      "proofType": "code",
+      "active": true,
+      "totalCompleted": 430,
+      "estimatedMinutes": 3,
+      "taskUrl": "https://forms.google.com/earn-watch-survey"
+    }
+  ],
+  "submissions": [
+    {
+      "id": "sub_demo1",
+      "taskId": "task_1",
+      "taskTitle": "অফিসিয়াল টেলিগ্রাম চ্যানেলে জয়েন করুন",
+      "userId": "usr_demo123",
+      "userName": "মোঃ সাকিব আহমেদ",
+      "userPhone": "01712345678",
+      "proofData": "@sakib_tech",
+      "rewardAmount": 15,
+      "status": "APPROVED",
+      "submittedAt": "2026-10-24T14:06:10.420Z",
+      "reviewedAt": "2026-10-24T14:06:10.420Z"
+    }
+  ],
+  "withdrawals": [
+    {
+      "id": "wd_prev1",
+      "userId": "usr_demo123",
+      "userName": "মোঃ সাকিব আহমেদ",
+      "method": "bKash",
+      "accountType": "Personal",
+      "accountNumber": "01712345678",
+      "amount": 50,
+      "fee": 0,
+      "finalAmount": 50,
+      "status": "COMPLETED",
+      "requestedAt": "2026-10-23T14:06:10.420Z",
+      "processedAt": "2026-10-24T14:06:10.420Z",
+      "adminNote": "TrxID: 9J3K81AL সফলভাবে ট্রান্সফার করা হয়েছে।"
+    }
+  ],
+  "referrals": [
+    {
+      "id": "ref_demo1",
+      "referrerId": "usr_demo123",
+      "referredUserId": "usr_demo_ref1",
+      "referredUserName": "আরিফুল ইসলাম",
+      "referredUserPhone": "01899887766",
+      "bonusAwarded": true,
+      "bonusAmount": 10,
+      "createdAt": "2026-10-22T14:06:10.420Z"
+    }
+  ],
+  "settings": {
+    "siteNotice": "🎉 Earn-Watch-Bot এ স্বাগতম! ভিডিও দেখে, টাস্ক সম্পন্ন করে এবং বন্ধুদের রেফার করে বিকাশ, নগদ বা রকেটে টাকা উত্তোলন করুন।",
+    "noticeActive": true,
+    "minWithdrawal": 50,
+    "dailyAdLimit": 12,
+    "dailyBonusAmount": 5,
+    "referralDirectBonus": 10,
+    "referralCommissionPercent": 10,
+    "isWithdrawalOpen": true,
+    "maintenanceMode": false,
+    "supportTelegram": "https://t.me/EarnWatchBotSupport",
+    "supportNotice": "যেকোনো সমস্যার জন্য আমাদের টেলিগ্রাম সাপোর্ট চ্যানেলে যোগাযোগ করুন।",
+    "paymentMethods": {
+      "bKash": true,
+      "Nagad": true,
+      "Rocket": true
+    },
+    "monetag": {
+      "enabled": true,
+      "zoneId": "9537184",
+      "sdkTagUrl": "//libtl.com/sdk.js",
+      "rewardAmount": 3.5,
+      "dailyLimit": 20
+    }
+  }
+}
